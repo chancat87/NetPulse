@@ -19,7 +19,7 @@ import {
   SharedAnalysisData
 } from './utils/shareUtils';
 import { cn } from './utils/cn';
-import { AlertCircle, Zap, ArrowLeft, Share2, Home } from 'lucide-react';
+import { AlertCircle, Zap, ArrowLeft, Share2, Home, Github } from 'lucide-react';
 import ParticleBackground from './components/ParticleBackground';
 import { trackAnalysisCompleted, trackShareClicked, trackAnalysisError, ErrorType } from './utils/analytics';
 
@@ -109,12 +109,12 @@ const App: React.FC = () => {
 
     try {
       const data = await analyzeEvent(query, mode, auth.token);
-      
+
       // Decrement usage for non-authenticated users
       if (!auth.isAuthenticated) {
         decrementUsage();
       }
-      
+
       setResult(data);
       setStatus(LoadingState.COMPLETE);
       // 追踪分析成功
@@ -129,7 +129,7 @@ const App: React.FC = () => {
       const errorMessage = err?.message || '';
       let errorKey = 'error.message'; // 默认错误消息
       let errorType: ErrorType = 'unknown';
-      
+
       // Handle 429 usage limit exceeded error
       if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('limit exceeded') || errorMessage.toLowerCase().includes('usage limit')) {
         if (!auth.isAuthenticated) {
@@ -155,17 +155,17 @@ const App: React.FC = () => {
         errorKey = 'error.invalidResponse';
         errorType = 'invalid_response';
       }
-      
+
       setErrorMsg(t(errorKey));
       setStatus(LoadingState.ERROR);
-      
+
       // 追踪分析失败（通用）
       trackAnalysisCompleted({
         mode,
         success: false,
         duration: Date.now() - analysisStartTime.current,
       });
-      
+
       // 追踪错误类型（细分）
       trackAnalysisError({
         mode,
@@ -223,6 +223,16 @@ const App: React.FC = () => {
             className="text-muted-foreground/60 hover:text-foreground transition-colors"
           >
             {t('footer.termsOfService')}
+          </a>
+          <span className="text-border">•</span>
+          <a
+            href="https://github.com/EmmaStoneX/NetPulse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center"
+            title="GitHub Repository"
+          >
+            <Github className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </a>
         </div>
       </div>
