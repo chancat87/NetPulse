@@ -19,17 +19,18 @@
 - **双语支持**：完整的国际化 (i18n) 支持，中英文界面自由切换，API 响应也会根据语言自动调整。
 - **搜索增强 (RAG)**：集成 **Tavily API** 获取实时、准确的网络上下文，大幅降低大模型幻觉。
 - **双模式分析**：
-  - **快速模式** (~15秒)：使用 Gemini 3.0 Flash 快速扫描
-  - **深度模式** (~60秒)：使用 Gemini 3.0 Pro 深度分析
+  - **快速模式** (~15秒)：使用 Gemini Flash-Lite 快速扫描
+  - **深度模式** (~60秒)：使用 Gemini 3.1 Pro 深度分析
 - **自定义 API Key**：高级用户可配置自己的搜索服务（Tavily/Exa）和大模型服务（Gemini/DeepSeek/OpenAI/Claude 或自定义端点）的 API Key。
 - **历史回响**：独创功能，自动将当前事件与历史上的类似事件进行对比，寻找历史的韵脚。
 - **分享功能**：生成短链接分享分析结果，数据存储在 Cloudflare KV 中，30 天有效期。
-- **智能错误提示**：根据错误类型（请求频繁、网络问题、服务器过载等）显示友好的错误提示。
+- **GitHub 授权登录**：内置 GitHub OAuth 机制支持，登录用户享受无限制体验，未登录游客由动态调度策略实行公平的速率限制。
+- **智能错误提示**：针对各种错误类型（请求频繁、网络异常等）反馈友好的错误信息，针对 BYOK 用户特别定制防黑盒策略（防范 HTML 误触发和 `/v1` 路由检查）。
 - **数据分析集成**：内置 Umami 分析，追踪用户行为和错误模式。
 - **安全架构**：API Key 存储在 Cloudflare Worker 的加密环境变量中。前端仅与自建后端 (`/api/analyze`) 通信。
 - **响应式设计**：基于 **Tailwind CSS** 构建的现代化"玻璃拟态"界面，完美适配手机、平板和桌面端。
 - **沉浸式体验**：全新的"事件视界"太空主题，配备交互式粒子背景和流畅的动画效果。
-- **动态热门话题**：实时获取热门话题，按语言分别缓存。
+- **动态热门话题**：结合语言特征缓存热门趋势，通过先进的 24h TTL 与最新有效缓冲 (Last-Success Fallback) 机制提供高可用保障。
 
 ## 🛠 技术栈
 
@@ -38,9 +39,9 @@
 | **前端** | React 19, TypeScript, Vite, i18next |
 | **后端** | Cloudflare Workers (JavaScript) |
 | **样式** | Tailwind CSS, Lucide React (图标) |
-| **AI 模型** | Google Gemini 3.0 Pro / Gemini 3.0 Flash |
+| **AI 模型** | Google Gemini 3.1 Pro / Gemini Flash-Lite |
 | **搜索引擎** | Tavily AI Search API |
-| **存储** | Cloudflare KV (用于分享链接) |
+| **存储** | Cloudflare KV (用于分享链接及鉴权 Token) |
 
 ## 📁 项目结构
 
@@ -125,10 +126,13 @@ NetPulse/
 
 > **多 Key 轮询**：NetPulse 支持配置最多 10 个 Tavily API Key，自动进行 Round-Robin 负载均衡。这有助于分散 API 调用量，避免单个 Key 触发速率限制。如果你只有一个 Key，配置 `TAVILY_API_KEY_1` 即可。
 
-### KV 命名空间（用于分享链接）
+### OAuth 配置与 KV 命名空间
 
-1. 在 Cloudflare 控制台创建名为 `SHARE_DATA` 的 KV 命名空间（**存储和数据库** → **KV**）
-2. 绑定配置已在 `wrangler.json` 中设置好，只需将 `id` 更新为你的 KV 命名空间 ID
+1. 在 Cloudflare 控制台创建两个分别名为 `SHARE_DATA` 和 `AUTH_TOKENS` 的 KV 命名空间（**存储和数据库** → **KV**）
+2. 绑定配置已经在 `wrangler.json` 中预设，只需将相应的 `id` 值更新为您自己的 KV 命名空间 ID 即可。
+3. 若要启用 GitHub 登录，需前往 GitHub Developer Settings 创建 OAuth App，将得到的变量添加至 Worker 的加密环境变量中：
+   - `GITHUB_CLIENT_ID`: 你的 GitHub OAuth 客户端 ID
+   - `GITHUB_CLIENT_SECRET`: 你的 GitHub OAuth 客户端 Secret
 
 ## 🌐 API 接口
 

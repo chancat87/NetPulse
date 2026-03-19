@@ -20,17 +20,18 @@
 - **Bilingual Support**: Full internationalization (i18n) with Chinese and English interfaces, including language-aware API responses.
 - **Search Grounding**: Utilizes **Tavily API** to fetch real-time, accurate context from the web, reducing hallucinations.
 - **Dual Analysis Modes**: 
-  - **Quick Mode** (~15s): Fast scanning with Gemini 3.0 Flash
-  - **Deep Mode** (~60s): Comprehensive analysis with Gemini 3.0 Pro
+  - **Quick Mode** (~15s): Fast scanning with Gemini Flash-Lite
+  - **Deep Mode** (~60s): Comprehensive analysis with Gemini 3.1 Pro
 - **Custom API Keys**: Advanced users can configure their own API keys for search (Tavily/Exa) and LLM services (Gemini/DeepSeek/OpenAI/Claude or custom endpoints).
 - **Historical Echoes**: Unique feature that compares current events with historical precedents to find patterns.
 - **Share Analysis**: Generate short links to share analysis results with others. Data stored in Cloudflare KV with 30-day expiration.
-- **Smart Error Handling**: User-friendly error messages based on error type (rate limit, network issues, server overload, etc.).
+- **GitHub Authentication**: Built-in GitHub OAuth integration. Logged-in users enjoy unlimited analyses while guests are subject to fair usage rate limits.
+- **Smart Error Handling**: User-friendly error messages based on error type (rate limit, network issues, server overload, etc.) with robust protections for custom endpoints (HTML rejection, `/v1` prefix validation).
 - **Analytics Integration**: Built-in Umami analytics for tracking user behavior and error patterns.
 - **Secure Architecture**: API Keys are stored in Cloudflare Worker Secrets. The frontend only communicates with your own backend (`/api/analyze`).
 - **Responsive UI**: A modern, glassmorphism-inspired interface built with **Tailwind CSS**, optimized for mobile and desktop.
 - **Immersive Experience**: New "Event Horizon" space theme with interactive particle background and smooth animations.
-- **Dynamic Trending Topics**: Real-time trending topics fetched and cached by language.
+- **Dynamic Trending Topics**: Real-time trending topics fetched and cached by language with advanced 24h TTL and last-success fallback for high reliability.
 
 ## 🛠 Tech Stack
 
@@ -39,9 +40,9 @@
 | **Frontend** | React 19, TypeScript, Vite, i18next |
 | **Backend** | Cloudflare Workers (JavaScript) |
 | **Styling** | Tailwind CSS, Lucide React (Icons) |
-| **AI Model** | Google Gemini 3.0 Pro / Gemini 3.0 Flash |
+| **AI Model** | Google Gemini 3.1 Pro / Gemini Flash-Lite |
 | **Search** | Tavily AI Search API |
-| **Storage** | Cloudflare KV (for share links) |
+| **Storage** | Cloudflare KV (for share links & auth tokens) |
 
 ## 📁 Project Structure
 
@@ -126,10 +127,13 @@ Add the following secrets in Cloudflare Worker settings (**Settings** → **Vari
 
 > **Multi-Key Support**: NetPulse supports up to 10 Tavily API keys with automatic round-robin load balancing. This helps distribute API usage across multiple keys to avoid rate limits. If you only have one key, just configure `TAVILY_API_KEY_1`.
 
-### KV Namespace (for Share Links)
+### OAuth & KV Namespaces
 
-1. Create a KV namespace named `SHARE_DATA` in Cloudflare Dashboard (**Storage & Databases** → **KV**)
-2. The binding is already configured in `wrangler.json` - just update the `id` with your KV namespace ID
+1. Create two KV namespaces named `SHARE_DATA` and `AUTH_TOKENS` in Cloudflare Dashboard (**Storage & Databases** → **KV**)
+2. Bind these KVs in your `wrangler.json` - updating the IDs with your KV namespace IDs.
+3. For GitHub Auth, create an OAuth App in GitHub Developer Settings and add these Worker secrets:
+   - `GITHUB_CLIENT_ID`: Your GitHub OAuth Client ID
+   - `GITHUB_CLIENT_SECRET`: Your GitHub OAuth Client Secret
 
 ## 🌐 API Endpoints
 
